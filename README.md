@@ -11,8 +11,13 @@ Customer-facing reservation application for a fictional luxury cabin retreat in 
 - Google OAuth through NextAuth/Auth.js
 - Automatic guest creation on first sign-in
 - Protected guest account and profile pages
+- Guest dashboard with upcoming-stay, reservation, night, and profile-completion summaries
 - Reservation creation, editing, and cancellation
+- Reservation status, payment, breakfast, and stay-history details
 - Ownership checks before booking updates or deletion
+- Responsive layouts for mobile, tablet, laptop, and wide desktop screens
+- Modern Alpine Retreat theme with warm stone, forest green, and muted gold design tokens
+- Locally generated country selector with current FlagCDN images and no country API dependency
 - Server rendering, incremental revalidation, and optimized images
 - Loading, error, and not-found states
 
@@ -21,7 +26,7 @@ Customer-facing reservation application for a fictional luxury cabin retreat in 
 | Area | Technology |
 | --- | --- |
 | Framework | Next.js 14.1.4 App Router |
-| UI | React 18, Tailwind CSS 3 |
+| UI | React 18, Tailwind CSS 3, responsive custom design system |
 | Authentication | NextAuth 5 beta / Auth.js, Google OAuth |
 | Database and storage | Supabase |
 | Dates | date-fns, react-day-picker |
@@ -214,6 +219,35 @@ These ownership checks are essential because the server-side Supabase client may
 - Mutations call `revalidatePath` for affected pages.
 - Route-level loading, error, and not-found files provide feedback.
 
+## Interface and responsive design
+
+The interface uses a light Modern Alpine Retreat visual system defined in
+`tailwind.config.js`:
+
+- Warm stone page backgrounds and white content surfaces
+- Forest-green typography, navigation, and active states
+- Muted-gold calls to action and booking highlights
+- Rounded cards, subtle borders, and restrained shadows
+- Responsive navigation, cabin cards, forms, reservation cards, and dashboards
+- A single-month calendar on phones and a two-month calendar on larger screens
+- Square cabin thumbnails that scale by viewport width
+
+The primary responsive breakpoints follow Tailwind defaults. Start with the
+mobile layout and add `sm`, `md`, `lg`, and `xl` behavior as space becomes
+available.
+
+## Guest profiles and country data
+
+Country choices are generated on the server from a local ISO 3166-1 alpha-2
+code list and `Intl.DisplayNames`. The selector does not call REST Countries,
+so profile rendering does not fail when an external country API is unavailable.
+Current flag images use `https://flagcdn.com/{code}.svg`. Saving a profile
+replaces any obsolete stored flag URL with the current value.
+
+Profile updates validate national IDs as 6 to 12 letters or numbers and return
+inline success or error feedback. Missing sessions redirect to login, while a
+missing guest record produces a controlled profile error.
+
 ## Scripts
 
 | Command | Purpose |
@@ -292,6 +326,20 @@ npm run dev
 - Ensure a guest row exists for the authenticated email.
 - Clear stale cookies after changing `AUTH_SECRET`.
 
+### Guest profile does not load
+
+- Confirm the authenticated email has a matching row in `guests`.
+- Confirm `fullname`, `natinality`, `nationalID`, and `countryFlag` use the
+  shared schema names documented above.
+- Flag image failures do not prevent the country selector from rendering.
+- Restart the development server after changing environment or Tailwind files.
+
+### Styles appear missing during development
+
+Do not run `npm run build` while `npm run dev` is using the same `.next`
+directory. If generated assets become mismatched, stop the server, remove
+`.next`, restart `npm run dev`, and hard-refresh the browser.
+
 ## Development guidelines
 
 - Keep credentials only in `.env.local`.
@@ -310,6 +358,7 @@ npm run dev
 - Anonymous and privileged Supabase clients are not separated.
 - Automated tests and CI workflows are not currently included.
 - The project is not configured for static export.
+- Flag images depend on FlagCDN availability, but country selection itself is local.
 
 ## License
 

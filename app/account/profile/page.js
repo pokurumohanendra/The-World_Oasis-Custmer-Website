@@ -2,6 +2,7 @@ import SelectCountry from "@/app/_components/SelectCountry";
 import UpdateProfileForm from "@/app/_components/UpdateProfileForm";
 import { auth } from "@/app/_lib/auth";
 import { getGuest } from "@/app/_lib/data-service";
+import { redirect } from "next/navigation";
 
 export const metadata = {
   title: "Update profile",
@@ -9,7 +10,10 @@ export const metadata = {
 
 export default async function Page() {
   const session = await auth();
+  if (!session?.user?.email) redirect("/login");
+
   const guest = await getGuest(session.user.email);
+  if (!guest) throw new Error("Guest profile could not be found.");
 
   return (
     <div>
@@ -26,7 +30,7 @@ export default async function Page() {
         <SelectCountry
           name="nationality"
           id="nationality"
-          className="px-5 py-3 bg-primary-200 text-primary-800 w-full shadow-sm rounded-sm"
+          className="px-5 py-3 bg-stone-100 text-primary-100 border border-primary-800 w-full shadow-sm rounded-md"
           defaultCountry={guest.nationality}
         />
       </UpdateProfileForm>

@@ -9,13 +9,13 @@ export default async function Page({ params }) {
 
   return (
     <div>
-      <h2 className="font-semibold text-2xl text-accent-400 mb-7">
+      <h2 className="font-semibold text-xl sm:text-2xl text-accent-400 mb-7">
         Edit Reservation #{bookingId}
       </h2>
 
       <form
         action={updateBooking}
-        className="bg-primary-900 py-8 px-12 text-lg flex gap-6 flex-col"
+        className="bg-primary-900 py-6 sm:py-8 px-4 sm:px-8 lg:px-12 text-base sm:text-lg flex gap-6 flex-col rounded-xl border border-primary-800 shadow-sm"
       >
         <input type="hidden" value={bookingId} name="bookingId" />
 
@@ -25,7 +25,7 @@ export default async function Page({ params }) {
             name="numGuests"
             id="numGuests"
             defaultValue={numGuests}
-            className="px-5 py-3 bg-primary-200 text-primary-800 w-full shadow-sm rounded-sm"
+            className="px-5 py-3 bg-stone-100 text-primary-100 border border-primary-800 w-full shadow-sm rounded-md"
             required
           >
             <option value="" key="">
@@ -46,7 +46,7 @@ export default async function Page({ params }) {
           <textarea
             name="observations"
             defaultValue={observations}
-            className="px-5 py-3 bg-primary-200 text-primary-800 w-full shadow-sm rounded-sm"
+            className="px-5 py-3 bg-stone-100 text-primary-100 border border-primary-800 w-full shadow-sm rounded-md"
           />
         </div>
 

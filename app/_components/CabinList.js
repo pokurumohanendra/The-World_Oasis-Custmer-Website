@@ -1,11 +1,7 @@
-import { unstable_noStore as noStore } from "next/cache";
-
 import CabinCard from "@/app/_components/CabinCard";
 import { getCabins } from "../_lib/data-service";
 
 async function CabinList({ filter }) {
-  // noStore();
-
   const cabins = await getCabins();
 
   if (!cabins.length) return null;
@@ -22,7 +18,7 @@ async function CabinList({ filter }) {
     displayedCabins = cabins.filter((cabin) => cabin.maxCapacity >= 8);
 
   return (
-    <div className="grid sm:grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 xl:gap-14">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 xl:gap-14">
       {displayedCabins.map((cabin) => (
         <CabinCard cabin={cabin} key={cabin.id} />
       ))}

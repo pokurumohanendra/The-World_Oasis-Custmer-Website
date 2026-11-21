@@ -6,15 +6,26 @@ import { supabase } from "./supabase";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-export async function updateGuest(formData) {
+export async function updateGuest(_previousState, formData) {
   const session = await auth();
-  if (!session) throw new Error("You must be logged in");
+  if (!session?.user?.guestId)
+    return { ok: false, message: "You must be logged in." };
 
-  const nationalID = formData.get("nationalID");
-  const [nationality, countryFlag] = formData.get("nationality").split("%");
+  const nationalID = formData.get("nationalID")?.toString().trim() ?? "";
+  const countryValue = formData.get("nationality")?.toString() ?? "";
+  const separatorIndex = countryValue.indexOf("%");
+
+  if (separatorIndex < 1)
+    return { ok: false, message: "Please select your country." };
+
+  const nationality = countryValue.slice(0, separatorIndex);
+  const countryFlag = countryValue.slice(separatorIndex + 1);
 
   if (!/^[a-zA-Z0-9]{6,12}$/.test(nationalID))
-    throw new Error("Please provide a valid national ID");
+    return {
+      ok: false,
+      message: "National ID must contain 6 to 12 letters or numbers.",
+    };
 
   const updateData = { natinality: nationality, countryFlag, nationalID };
 
@@ -23,9 +34,13 @@ export async function updateGuest(formData) {
     .update(updateData)
     .eq("id", session.user.guestId);
 
-  if (error) throw new Error("Guest could not be updated");
+  if (error) {
+    console.error("Guest profile update failed", error);
+    return { ok: false, message: "Guest profile could not be updated." };
+  }
 
   revalidatePath("/account/profile");
+  return { ok: true, message: "Profile updated successfully." };
 }
 
 export async function createBooking(bookingData, formData) {
@@ -78,24 +93,20 @@ export async function deleteBooking(bookingId) {
 export async function updateBooking(formData) {
   const bookingId = Number(formData.get("bookingId"));
 
-  // 1) Authentication
   const session = await auth();
   if (!session) throw new Error("You must be logged in");
 
-  // 2) Authorization
   const guestBookings = await getBookings(session.user.guestId);
   const guestBookingIds = guestBookings.map((booking) => booking.id);
 
   if (!guestBookingIds.includes(bookingId))
     throw new Error("You are not allowed to update this booking");
 
-  // 3) Building update data
   const updateData = {
     numGuests: Number(formData.get("numGuests")),
     observations: formData.get("observations").slice(0, 1000),
   };
 
-  // 4) Mutation
   const { error } = await supabase
     .from("bookings")
     .update(updateData)
@@ -103,14 +114,11 @@ export async function updateBooking(formData) {
     .select()
     .single();
 
-  // 5) Error handling
   if (error) throw new Error("Booking could not be updated");
 
-  // 6) Revalidation
   revalidatePath(`/account/reservations/edit/${bookingId}`);
   revalidatePath("/account/reservations");
 
-  // 7) Redirecting
   redirect("/account/reservations");
 }
 
